@@ -397,8 +397,9 @@ pub fn run_hand(bank: &mut u32, deck: &mut Vec<Card>) {
                 break;
             },
             TurnResult::Surrendered => {
-                state.current_person = Person::Dealer;
                 state.surrendered = true;
+                state.current_person = Person::Dealer;
+                state.dealer_hand[0].face_up = true;
             },
             TurnResult::SurrenderedFinished => {
                 *bank -= (bet_amount as f64 * 0.5f64) as u32;
