@@ -43,7 +43,7 @@ fn main() {
     }
 
     loop {
-        if chips <= 0 {
+        if chips == 0 {
             println!("You're broke!");
             break;
         }
