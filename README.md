@@ -8,12 +8,12 @@ This program simulates the casino game: blackjack.
 
 - Betting
 - Standard actions: Hitting and Standing
-- Special actions: Doubling down
+- Special actions: Doubling down and Surrendering
 - Deck drawing system allowing for card counting
 
 ## Planned Features
 
-- Special actions: Splitting and Surrendering
+- Special action: Splitting
 - ASCII art cards
 - Insurance
 
