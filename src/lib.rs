@@ -4,6 +4,8 @@ use rand::rngs::SmallRng;
 
 pub type Hand = Vec<Card>;
 
+pub const DECK_COUNT: u8 = 8;
+
 #[derive(Clone, Copy)]
 pub struct Card {
     pub face_up: bool,
@@ -207,11 +209,13 @@ pub fn draw_card(deck: &mut Vec<Card>) -> Card {
     if deck.len() == 0 {
         // refill deck
         
-        for value in 1..=13 {
-            deck.push(Card { face_up: true, suit: Suit::Clubs, value });   
-            deck.push(Card { face_up: true, suit: Suit::Hearts, value });   
-            deck.push(Card { face_up: true, suit: Suit::Spades, value });   
-            deck.push(Card { face_up: true, suit: Suit::Diamonds, value });   
+        for _ in 0..DECK_COUNT {
+            for value in 1..=13 {
+                deck.push(Card { face_up: true, suit: Suit::Clubs, value });   
+                deck.push(Card { face_up: true, suit: Suit::Hearts, value });   
+                deck.push(Card { face_up: true, suit: Suit::Spades, value });   
+                deck.push(Card { face_up: true, suit: Suit::Diamonds, value });   
+            }
         }
     }
 
