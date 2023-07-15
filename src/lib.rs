@@ -206,7 +206,7 @@ pub fn draw_card(deck: &mut Vec<Card>) -> Card {
     let card = deck[idx];
     deck.remove(idx);
 
-    if deck.len() == 0 {
+    if deck.is_empty() {
         // refill deck
         
         for _ in 0..DECK_COUNT {
@@ -435,12 +435,12 @@ pub fn get_bet(bank: u32) -> u32 {
 
         let bet_amount_result = bet_string.trim().parse::<u32>();
 
-        if bet_amount_result.is_err() {
+        bet_amount = if let Ok(value) = bet_amount_result {
+            value   
+        } else {
             println!("That's not a valid bet amount");
             continue;
-        } else {
-            bet_amount = bet_amount_result.unwrap();
-        }
+        };
 
         if bet_amount > bank {
             println!("You don't have enough chips");
