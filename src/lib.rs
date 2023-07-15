@@ -56,6 +56,7 @@ pub struct GameState {
     pub dealer_hand: Hand,
     pub player_hand: Hand,
     pub current_person: Person,
+    pub surrendered: bool,
 }
 
 impl GameState {
@@ -64,6 +65,7 @@ impl GameState {
             dealer_hand: Vec::new(),
             player_hand: Vec::new(),
             current_person: Person::Player,
+            surrendered: false,
         };
 
         let mut dealer_down_card = draw_card(deck);
@@ -193,6 +195,7 @@ pub enum TurnResult {
     Draw,
     Loss,
     Surrendered,
+    SurrenderedFinished,
 }
 
 pub fn draw_card(deck: &mut Vec<Card>) -> Card {
@@ -306,33 +309,45 @@ pub fn run_dealer_turn(state: &mut GameState, deck: &mut Vec<Card>) -> TurnResul
                     TurnResult::Unfinished
                 },
                 17..=21 => {
-                    match eval_hand(state.player_hand.clone()) {
-                        HandValue::Hard(player_value) | HandValue::Soft(player_value) => {
-                            match player_value.cmp(&dealer_value) {
-                                Ordering::Less => TurnResult::Loss,
-                                Ordering::Equal => TurnResult::Draw,
-                                Ordering::Greater => TurnResult::Won,
-                            } 
-                        },
-                        HandValue::Bust(_) => TurnResult::Loss,
-                        HandValue::BlackJack => TurnResult::WonBlackJack,
-                    }   
+                    if !state.surrendered {
+                        match eval_hand(state.player_hand.clone()) {
+                            HandValue::Hard(player_value) | HandValue::Soft(player_value) => {
+                                match player_value.cmp(&dealer_value) {
+                                    Ordering::Less => TurnResult::Loss,
+                                    Ordering::Equal => TurnResult::Draw,
+                                    Ordering::Greater => TurnResult::Won,
+                                } 
+                            },
+                            HandValue::Bust(_) => TurnResult::Loss,
+                            HandValue::BlackJack => TurnResult::WonBlackJack,
+                        }   
+                    } else {
+                        TurnResult::SurrenderedFinished   
+                    }
                 },
                 other => panic!("unexpected hand value: {}", other),
             }   
         },
         HandValue::Bust(_) => {
-            match eval_hand(state.player_hand.clone()) {
-                HandValue::Bust(_) => TurnResult::Loss,
-                HandValue::BlackJack => TurnResult::WonBlackJack,
-                _ => TurnResult::Won,
-            } 
+            if !state.surrendered {
+                match eval_hand(state.player_hand.clone()) {
+                    HandValue::Bust(_) => TurnResult::Loss,
+                    HandValue::BlackJack => TurnResult::WonBlackJack,
+                    _ => TurnResult::Won,
+                } 
+            } else {
+                TurnResult::SurrenderedFinished   
+            }
         },
         HandValue::BlackJack => {
-            match eval_hand(state.player_hand.clone()) {
-                HandValue::BlackJack => TurnResult::WonBlackJack,
-                _ => TurnResult::Loss,
-            }   
+            if !state.surrendered {
+                match eval_hand(state.player_hand.clone()) {
+                    HandValue::BlackJack => TurnResult::WonBlackJack,
+                    _ => TurnResult::Loss,
+                }   
+            } else {
+                TurnResult::SurrenderedFinished   
+            }
         },
     }
 }
@@ -381,7 +396,14 @@ pub fn run_hand(bank: &mut u32, deck: &mut Vec<Card>) {
                 *bank -= bet_amount;
                 break;
             },
-            TurnResult::Surrendered => todo!(),
+            TurnResult::Surrendered => {
+                state.current_person = Person::Dealer;
+                state.surrendered = true;
+            },
+            TurnResult::SurrenderedFinished => {
+                *bank -= (bet_amount as f64 * 0.5f64) as u32;
+                break;
+            },
         }
     }
 }
