@@ -135,6 +135,7 @@ pub enum TurnAction {
     Hit,
     Stand,
     DoubleDown,
+    Surrender,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -191,6 +192,7 @@ pub enum TurnResult {
     WonBlackJack,
     Draw,
     Loss,
+    Surrendered,
 }
 
 pub fn draw_card(deck: &mut Vec<Card>) -> Card {
@@ -220,7 +222,7 @@ pub fn run_player_turn(state: &mut GameState, deck: &mut Vec<Card>, bank: &mut u
 
     loop {
         if can_double {
-            print!("Hit(F), Stand(J), Double(Y)");
+            print!("Hit(F), Stand(J), Double(Y), Surrender(T)");
             let flush_result = io::stdout().flush();
 
             if let Err(err) = flush_result {
@@ -238,6 +240,7 @@ pub fn run_player_turn(state: &mut GameState, deck: &mut Vec<Card>, bank: &mut u
                 "f" => action = TurnAction::Hit,
                 "j" => action = TurnAction::Stand,
                 "y" => action = TurnAction::DoubleDown,
+                "t" => action = TurnAction::Surrender,
                 other => {
                     println!("{other} is not a valid action");
                     continue;
@@ -246,7 +249,7 @@ pub fn run_player_turn(state: &mut GameState, deck: &mut Vec<Card>, bank: &mut u
 
             break;
         } else {
-            print!("Hit(F), Stand(J)");
+            print!("Hit(F), Stand(J), Surrender(T)");
             let flush_result = io::stdout().flush();
 
             if let Err(err) = flush_result {
@@ -263,6 +266,7 @@ pub fn run_player_turn(state: &mut GameState, deck: &mut Vec<Card>, bank: &mut u
             match answer.trim().to_ascii_lowercase().as_str() {
                 "f" => action = TurnAction::Hit,
                 "j" => action = TurnAction::Stand,
+                "t" => action = TurnAction::Surrender,
                 other => {
                     println!("{other} is not a valid action");
                     continue;
@@ -286,7 +290,8 @@ pub fn run_player_turn(state: &mut GameState, deck: &mut Vec<Card>, bank: &mut u
         TurnAction::DoubleDown => {
             state.player_hand.push(draw_card(deck));
             TurnResult::Doubled
-        }
+        },
+        TurnAction::Surrender => TurnResult::Surrendered,
     }
 }
 
@@ -376,6 +381,7 @@ pub fn run_hand(bank: &mut u32, deck: &mut Vec<Card>) {
                 *bank -= bet_amount;
                 break;
             },
+            TurnResult::Surrendered => todo!(),
         }
     }
 }
